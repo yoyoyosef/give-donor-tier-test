@@ -1,0 +1,253 @@
+<?php
+
+add_action( 'wp_enqueue_scripts', 'charitab_mascot_child_theme_enqueue_styles' );
+function charitab_mascot_child_theme_enqueue_styles() {
+    $parent_style = 'parent-style';
+    wp_enqueue_style( $parent_style, get_template_directory_uri() . '/style.css' );
+    
+    wp_enqueue_style( 'child-style',
+        get_stylesheet_directory_uri() . '/style.css',
+        array( $parent_style ),
+        wp_get_theme()->get('Version')
+    );
+
+	
+}
+
+
+
+
+/**
+
+ */
+function give_donor_list_shortcode_function_example( $atts ) {
+
+	if ( ! class_exists( 'Give_Payments_Query' ) ) {
+		return;
+	}
+
+	$atts = shortcode_atts( array(
+		'number'  => 3000,
+		'form_id' => null,
+		'heading' => 'Top Tier',
+	), $atts, 'my_donor_list' );
+
+	$args = array(
+		'output' => 'payments',
+		'number' => $atts['number'],
+		'status' => 'publish',
+		'year'            => 2020,
+        'give_forms' => $atts['form_id'],
+		'meta_query' => array(
+		array(
+			'key' => '_give_payment_total',
+			'type' => 'numeric', // specify it for numeric values
+			'value'   => array( 5000, 100000 ),
+        	'compare' => 'BETWEEN',
+		)
+	)
+
+	);
+
+	$payments = new Give_Payments_Query( $args );
+	$payments = $payments->get_payments();
+
+	if ( $payments ) : ?>
+        
+        <h2 class="donor-tier"><?php echo esc_html( $atts['heading'] ); ?></h2>
+        <ul class="my-give-donor-wall">
+			<?php
+			/**
+			 * Loop through individual payments.
+			 *
+			 */
+			foreach ( $payments as $payment ) :
+				/* @var $payment \Give_Payment */
+				$first_name = $payment->get_meta( '_give_donor_billing_first_name', true );
+				$last_name = $payment->get_meta( '_give_donor_billing_last_name', true );
+				$total  = give_donation_amount( $payment->ID, array( 'currency' => true ) );
+				//$avatar = get_avatar( $payment->email, 64 );
+				//$comments = give_get_meta ( 'give_get_donor_donation_comment', true );
+				//$comments = $payment->get_meta( 'give_get_donor_donation_comment', true );
+				//$comments = $payment->get_meta( 'donor_comment', true );
+				$comments = $payment->get_meta( 'donor_comment', true );
+				//$comments = give_get_donor_donation_comment( $payment->ID, array( 'comment' => true ) );
+				//$honoree_first_name = give_get_meta( $donation[ 'donation_id' ], '_give_tributes_first_name', true );
+				?>
+			
+                <li>
+                    <div class="my-give-donorwall-donor">
+                        <span class="my-give-donorwall-name"><?php echo esc_html( $first_name . ' ' . $last_name ); ?></span>
+						<span class="my-give-donorwall-total"><?php echo $total; ?></span>
+						<span class="my-give-donorwall-comment"><?php echo $comments;  ?><?php echo esc_html( $comments ); ?></span>
+						<span class="my-give-donorwall-comment"><?php echo $honoree_first_name;  ?><?php echo esc_html( $honoree_first_name ); ?></span>
+                    </div>
+                </li>
+			<?php endforeach; ?>
+        </ul>
+	<?php else : ?>
+        <!-- If you don't have donations that fit this query -->
+        <h2>Sorry you don't have any donation payments that fit this query</h2>
+
+	<?php endif;
+
+}
+
+add_shortcode( 'my_donor_list', 'give_donor_list_shortcode_function_example' );
+
+
+
+
+/*
+Tier 2
+*/
+function give_donor_list_tier2_shortcode( $atts ) {
+
+	if ( ! class_exists( 'Give_Payments_Query' ) ) {
+		return;
+	}
+
+	$atts = shortcode_atts( array(
+		'number'  => 3000,
+		'form_id' => null,
+		'heading' => 'Second Tier',
+	), $atts, 'my_donor_list' );
+
+	$args = array(
+		'output' => 'payments',
+		'number' => $atts['number'],
+		'status' => 'publish',
+		'year'            => 2020,
+        'give_forms' => $atts['form_id'],
+		'meta_query' => array(
+		array(
+			'key' => '_give_payment_total',
+			'type' => 'numeric', // specify it for numeric values
+			'value'   => array( 1000, 4999 ),
+        	'compare' => 'BETWEEN',
+		)
+	)
+
+	);
+
+	$payments = new Give_Payments_Query( $args );
+	$payments = $payments->get_payments();
+
+	if ( $payments ) : ?>
+        
+        <h2 class="donor-tier"><?php echo esc_html( $atts['heading'] ); ?></h2>
+        <ul class="my-give-donor-wall">
+			<?php
+			/**
+			 * Loop through individual payments.
+			 *
+			 */
+			foreach ( $payments as $payment ) :
+				/* @var $payment \Give_Payment */
+				$first_name = $payment->get_meta( '_give_donor_billing_first_name', true );
+				$last_name = $payment->get_meta( '_give_donor_billing_last_name', true );
+				$total  = give_donation_amount( $payment->ID, array( 'currency' => true ) );
+				//$avatar = get_avatar( $payment->email, 64 );
+				//$comments = give_get_meta ( 'give_get_donor_donation_comment', true );
+			    $comments = $payment->get_meta( '_give_donor_donation_comment', true );
+				//$comments = give_get_donor_donation_comment( $payment->ID, true );
+				?>
+			
+			
+                <li>
+                    <div class="my-give-donorwall-donor">
+                        <span class="my-give-donorwall-name"><?php echo esc_html( $first_name . ' ' . $last_name ); ?></span>
+						<span class="my-give-donorwall-total"><?php echo $total; ?></span>
+						<span class="my-give-donorwall-comment"><?php echo $comments;  ?><?php echo esc_html( $comments ); ?></span>
+                    </div>
+                </li>
+			<?php endforeach; ?>
+        </ul>
+	<?php else : ?>
+        <!-- If you don't have donations that fit this query -->
+        <h2>Sorry you don't have any donation payments that fit this query</h2>
+
+	<?php endif;
+
+}
+
+add_shortcode( 'my_donor_list_tier2', 'give_donor_list_tier2_shortcode' );
+
+
+
+
+
+
+/*
+Tier 2
+*/
+function give_donor_list_tier3_shortcode( $atts ) {
+
+	if ( ! class_exists( 'Give_Payments_Query' ) ) {
+		return;
+	}
+
+	$atts = shortcode_atts( array(
+		'number'  => 3000,
+		'form_id' => null,
+		'heading' => 'Third Tier',
+	), $atts, 'my_donor_list' );
+
+	$args = array(
+		'output' => 'payments',
+		'number' => $atts['number'],
+		'status' => 'publish',
+		'year'            => 2020,
+        'give_forms' => $atts['form_id'],
+		'meta_query' => array(
+		array(
+			'key' => '_give_payment_total',
+			'type' => 'numeric', // specify it for numeric values
+			'value'   => array( 0, 999 ),
+        	'compare' => 'BETWEEN',
+		)
+	)
+
+	);
+
+	$payments = new Give_Payments_Query( $args );
+	$payments = $payments->get_payments();
+
+	if ( $payments ) : ?>
+        
+        <h2 class="donor-tier"><?php echo esc_html( $atts['heading'] ); ?></h2>
+        <ul class="my-give-donor-wall">
+			<?php
+			/**
+			 * Loop through individual payments.
+			 *
+			 */
+			foreach ( $payments as $payment ) :
+				/* @var $payment \Give_Payment */
+				$first_name = $payment->get_meta( '_give_donor_billing_first_name', true );
+				$last_name = $payment->get_meta( '_give_donor_billing_last_name', true );
+				$total  = give_donation_amount( $payment->ID, array( 'currency' => true ) );
+				//$avatar = get_avatar( $payment->email, 64 );
+				$comments = give_get_meta ( 'give_get_donor_donation_comment', true );
+				//$comments = $payment->get_meta( 'give_get_donor_donation_comment', true );
+				//$comments = give_get_donor_donation_comment( $payment->ID, true );
+				?>
+					
+                <li>
+                    <div class="my-give-donorwall-donor">
+                        <span class="my-give-donorwall-name"><?php echo esc_html( $first_name . ' ' . $last_name ); ?></span>
+						<span class="my-give-donorwall-total"><?php echo $total; ?></span>
+						<span class="my-give-donorwall-comment"><?php echo $comments;  ?><?php echo esc_html( $comments ); ?></span>
+                    </div>
+                </li>
+			<?php endforeach; ?>
+        </ul>
+	<?php else : ?>
+        <!-- If you don't have donations that fit this query -->
+        <h2>Sorry you don't have any donation payments that fit this query</h2>
+
+	<?php endif;
+
+}
+
+add_shortcode( 'my_donor_list_tier3', 'give_donor_list_tier3_shortcode' );
